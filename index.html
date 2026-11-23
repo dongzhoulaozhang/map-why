@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>黄河线路图（示意版） · 地图上的为什么 第1集</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:#05090d;color:#e9f3f7;
+    font-family:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #stage{position:relative;overflow:hidden;background:#0a1218;--u:3.4px}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .riv path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .halo{stroke-width:38;opacity:.46;filter:blur(7px)}
+  .core{stroke-width:13}
+  .halo.clear{stroke:#0dbf5a}
+  .core.clear{stroke:#96f2ae}
+  .halo.muddy{stroke:#c97a00}
+  .core.muddy{stroke:#ffc733}
+  .yellmark{
+    position:absolute;transform:translate(-100%,-50%) scale(.7);opacity:0;
+    transition:.55s cubic-bezier(.2,1.5,.4,1);pointer-events:none;white-space:nowrap;
+    font-weight:700;font-size:calc(var(--u)*3.2);line-height:1.45;text-align:center;
+    color:#ffd257;text-shadow:0 1px calc(var(--u)*3) rgba(0,0,0,.95);
+    background:rgba(26,13,0,.86);border:1px solid rgba(255,196,64,.55);
+    padding:calc(var(--u)*1.4) calc(var(--u)*2.6);border-radius:calc(var(--u)*2.4);
+  }
+  .yellmark.on{opacity:1;transform:translate(-100%,-50%) scale(1)}
+  .yellmark.r{transform:translate(0,-50%) scale(.7)}
+  .yellmark.r.on{transform:translate(0,-50%) scale(1)}
+
+  .vig{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 46%, rgba(0,0,0,0) 40%, rgba(2,7,11,.85) 100%)}
+  .topFade{position:absolute;left:0;right:0;top:0;height:34%;pointer-events:none;
+    background:linear-gradient(180deg, rgba(3,8,12,.95), rgba(3,8,12,.72) 46%, rgba(0,0,0,0))}
+  .botFade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;
+    background:linear-gradient(0deg, rgba(3,8,12,.97), rgba(3,8,12,.55) 48%, rgba(0,0,0,0))}
+
+  .head{position:absolute;left:0;right:0;top:0;padding:calc(var(--u)*17) calc(var(--u)*8) 0;
+    opacity:0;transition:opacity .8s ease;pointer-events:none}
+  .head.on{opacity:1}
+  .kick{font-size:calc(var(--u)*2.5);letter-spacing:.30em;color:#8cc4d8;margin-bottom:calc(var(--u)*3.4)}
+  h1{
+    font-family:"Songti SC","STSong","SimSun",serif;
+    font-size:calc(var(--u)*7.5);font-weight:700;letter-spacing:.04em;line-height:1.30;
+    background:linear-gradient(96deg,#ffffff 8%,#a7dced 56%,#ffd257 116%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .head .sub{margin-top:calc(var(--u)*6.0);font-size:calc(var(--u)*2.9);
+    color:#b6ccd8;text-shadow:0 1px 10px rgba(0,0,0,.9);letter-spacing:.02em;line-height:1.6}
+
+  .pins{position:absolute;inset:0;pointer-events:none}
+  .pin{
+    pointer-events:none;
+    position:absolute;transform:translate(-50%,-50%) scale(.88);opacity:0;
+    transition:opacity .45s ease, transform .45s cubic-bezier(.2,1.3,.4,1);
+    display:flex;align-items:center;gap:calc(var(--u)*1.6);white-space:nowrap;
+  }
+  .pin.on{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;cursor:pointer}
+  .pin:active{transform:translate(-50%,-50%) scale(1.18)}
+  .pin.hot b{border-color:#ffd257;color:#ffd257}
+  .pin i{
+    width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);border-radius:50%;background:#fff;flex:0 0 auto;
+    box-shadow:0 0 0 2px rgba(255,255,255,.3),0 0 calc(var(--u)*4) rgba(190,240,255,.95);
+  }
+  .pin b{
+    font-weight:600;font-size:calc(var(--u)*2.75);letter-spacing:.03em;
+    padding:calc(var(--u)*.8) calc(var(--u)*2.0);border-radius:calc(var(--u)*3);
+    background:rgba(3,12,18,.88);border:1px solid rgba(150,205,225,.34);
+    color:#eaf8fe;
+  }
+  .pin.rev{flex-direction:row-reverse}
+
+  .cap{
+    position:absolute;left:8%;right:8%;bottom:22%;text-align:center;
+    opacity:0;transform:translateY(calc(var(--u)*2));transition:.4s ease;pointer-events:none;
+  }
+  .cap.on{opacity:1;transform:none}
+  #stage.done .cap{bottom:43%}
+  .cap b{display:block;font-size:calc(var(--u)*4.3);letter-spacing:.08em;color:#fff;
+    text-shadow:0 calc(var(--u)*.5) calc(var(--u)*5) rgba(0,0,0,.95)}
+  .cap span{display:block;margin-top:calc(var(--u)*2);font-size:calc(var(--u)*3.0);color:#ffd257}
+
+  .end{
+    position:absolute;left:7%;right:7%;bottom:15%;text-align:center;
+    padding:calc(var(--u)*4.2) calc(var(--u)*3.6);
+    border-radius:calc(var(--u)*3.4);
+    background:rgba(3,9,13,.74);
+    border:1px solid rgba(140,195,215,.20);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    box-shadow:0 calc(var(--u)*2) calc(var(--u)*10) rgba(0,0,0,.55);
+    opacity:0;transform:translateY(calc(var(--u)*2.4));transition:.8s ease;pointer-events:none;
+  }
+  .end.on{opacity:1;transform:none}
+  .end .q{font-size:calc(var(--u)*3.8);letter-spacing:.04em;color:#fff;line-height:1.66}
+  .end .q em{font-style:normal;color:#ffd257}
+  .end .prov{margin-top:calc(var(--u)*3.2);font-size:calc(var(--u)*2.6);letter-spacing:.06em;color:#a9d3e6}
+  .end .hint{margin-top:calc(var(--u)*2.2);font-size:calc(var(--u)*2.7);color:#ffd257;letter-spacing:.04em}
+  .end .tag{margin-top:calc(var(--u)*2.6);font-size:calc(var(--u)*2.4);color:#8ba7b5;letter-spacing:.20em}
+
+  .hud{position:absolute;left:0;right:0;bottom:0;padding:0 8% calc(var(--u)*7);
+    display:flex;align-items:center;gap:calc(var(--u)*3)}
+  .bar{flex:1;height:2px;background:rgba(255,255,255,.16);border-radius:2px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#5fd8ff,#ffd257)}
+  .btn{
+    flex:0 0 auto;font:inherit;font-size:calc(var(--u)*2.6);color:#cfe6f0;cursor:pointer;
+    background:rgba(6,20,28,.82);border:1px solid rgba(140,190,215,.28);
+    padding:calc(var(--u)*1.3) calc(var(--u)*3);border-radius:calc(var(--u)*2);
+  }
+  .foot{
+    position:absolute;left:7%;right:7%;bottom:calc(var(--u)*2.2);
+    font-size:calc(var(--u)*2.05);line-height:1.55;color:#5d7784;text-align:center;
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="map" viewBox="0 0 4551 2533" preserveAspectRatio="xMidYMid slice">
+    <g class="riv">
+      <path class="halo clear" d="M 114.2 1842.3 L 173.0 1864.1 L 315.7 1899.7 L 378.1 1923.1 L 529.3 2000.3 L 548.5 2015.5 L 602.5 2073.7 L 656.1 2109.7 L 706.6 2132.0 L 796.6 2157.4 L 827.4 2163.4 L 849.2 2164.4 L 931.6 2151.2 L 1038.6 2142.4 L 1094.4 2127.8 L 1152.5 2101.3 L 1160.7 2095.3 L 1168.1 2085.1 L 1176.3 2055.1 L 1178.7 2012.7 L 1170.9 1979.9 L 1150.5 1943.9 L 1118.2 1906.5 L 1080.8 1875.5 L 1013.4 1828.9 L 993.0 1807.3 L 985.8 1787.7 L 986.6 1765.9 L 994.0 1742.9 L 1012.2 1712.5 L 1035.6 1683.3 L 1060.2 1660.1 L 1080.8 1649.5 L 1096.8 1646.5 L 1144.5 1650.7 L 1216.9 1673.7 L 1262.9 1681.7 L 1320.9 1683.3 L 1370.3 1674.9 L 1449.9 1645.7 L 1515.5 1628.3 L 1537.3 1619.9 L 1563.3 1603.5 L 1642.0 1540.7 L 1661.6 1518.3 L 1764.0 1367.0 L 1781.2 1345.6 L 1808.6 1323.0 L 1866.6 1290.2 L 1889.0 1268.6 L 1936.2 1193.2 L 1992.8 1093.0 L 2040.0 992.0 L 2052.9 952.8 L 2055.5 921.0 L 2050.9 832.3 L 2051.7 766.3 L 2061.3 723.5 L 2077.9 690.5 L 2136.3 606.3 L 2162.3 579.3 L 2196.1 560.9 L 2256.9 546.9 L 2303.7 543.7 L 2334.3 546.5 L 2358.7 553.5 L 2416.3 578.7 L 2463.1 591.3 L 2509.4 597.7 L 2613.8 604.7 L 2673.0 615.5 L 2712.0 630.3 L 2791.4 668.3 L 2807.2 682.9 L 2821.0 711.1"/>
+      <path class="core clear" d="M 114.2 1842.3 L 173.0 1864.1 L 315.7 1899.7 L 378.1 1923.1 L 529.3 2000.3 L 548.5 2015.5 L 602.5 2073.7 L 656.1 2109.7 L 706.6 2132.0 L 796.6 2157.4 L 827.4 2163.4 L 849.2 2164.4 L 931.6 2151.2 L 1038.6 2142.4 L 1094.4 2127.8 L 1152.5 2101.3 L 1160.7 2095.3 L 1168.1 2085.1 L 1176.3 2055.1 L 1178.7 2012.7 L 1170.9 1979.9 L 1150.5 1943.9 L 1118.2 1906.5 L 1080.8 1875.5 L 1013.4 1828.9 L 993.0 1807.3 L 985.8 1787.7 L 986.6 1765.9 L 994.0 1742.9 L 1012.2 1712.5 L 1035.6 1683.3 L 1060.2 1660.1 L 1080.8 1649.5 L 1096.8 1646.5 L 1144.5 1650.7 L 1216.9 1673.7 L 1262.9 1681.7 L 1320.9 1683.3 L 1370.3 1674.9 L 1449.9 1645.7 L 1515.5 1628.3 L 1537.3 1619.9 L 1563.3 1603.5 L 1642.0 1540.7 L 1661.6 1518.3 L 1764.0 1367.0 L 1781.2 1345.6 L 1808.6 1323.0 L 1866.6 1290.2 L 1889.0 1268.6 L 1936.2 1193.2 L 1992.8 1093.0 L 2040.0 992.0 L 2052.9 952.8 L 2055.5 921.0 L 2050.9 832.3 L 2051.7 766.3 L 2061.3 723.5 L 2077.9 690.5 L 2136.3 606.3 L 2162.3 579.3 L 2196.1 560.9 L 2256.9 546.9 L 2303.7 543.7 L 2334.3 546.5 L 2358.7 553.5 L 2416.3 578.7 L 2463.1 591.3 L 2509.4 597.7 L 2613.8 604.7 L 2673.0 615.5 L 2712.0 630.3 L 2791.4 668.3 L 2807.2 682.9 L 2821.0 711.1"/>
+      <path class="halo muddy" d="M 2821.0 711.1 L 2839.6 838.3 L 2840.0 877.0 L 2823.6 944.4 L 2814.8 1009.2 L 2807.2 1041.0 L 2789.6 1081.4 L 2757.8 1133.8 L 2748.8 1157.4 L 2746.4 1191.2 L 2757.6 1259.6 L 2757.6 1312.4 L 2751.6 1344.8 L 2725.6 1418.4 L 2718.8 1450.8 L 2718.2 1474.8 L 2725.2 1552.1 L 2721.4 1685.1 L 2725.2 1764.3 L 2720.0 1795.5 L 2699.8 1870.3 L 2695.6 1903.7 L 2696.6 1919.1 L 2701.0 1932.3 L 2709.2 1942.5 L 2721.0 1949.1 L 2743.6 1952.3 L 2769.0 1948.9 L 2887.8 1916.3 L 2940.2 1906.3 L 3061.7 1901.5 L 3142.1 1906.9 L 3175.3 1906.3 L 3253.5 1897.3 L 3424.0 1886.9 L 3453.0 1882.1 L 3481.4 1871.9 L 3512.0 1851.9 L 3553.6 1809.5 L 3613.0 1761.3 L 3698.2 1685.5 L 3732.0 1663.9 L 3813.8 1622.7 L 3875.5 1579.3 L 3899.5 1557.1 L 3949.7 1501.3 L 3970.3 1486.0 L 4023.3 1454.4 L 4049.7 1432.6 L 4066.1 1413.0 L 4102.5 1358.8 L 4138.3 1325.4 L 4180.7 1294.8 L 4226.3 1267.2 L 4270.5 1246.6 L 4302.9 1236.8"/>
+      <path class="core muddy" d="M 2821.0 711.1 L 2839.6 838.3 L 2840.0 877.0 L 2823.6 944.4 L 2814.8 1009.2 L 2807.2 1041.0 L 2789.6 1081.4 L 2757.8 1133.8 L 2748.8 1157.4 L 2746.4 1191.2 L 2757.6 1259.6 L 2757.6 1312.4 L 2751.6 1344.8 L 2725.6 1418.4 L 2718.8 1450.8 L 2718.2 1474.8 L 2725.2 1552.1 L 2721.4 1685.1 L 2725.2 1764.3 L 2720.0 1795.5 L 2699.8 1870.3 L 2695.6 1903.7 L 2696.6 1919.1 L 2701.0 1932.3 L 2709.2 1942.5 L 2721.0 1949.1 L 2743.6 1952.3 L 2769.0 1948.9 L 2887.8 1916.3 L 2940.2 1906.3 L 3061.7 1901.5 L 3142.1 1906.9 L 3175.3 1906.3 L 3253.5 1897.3 L 3424.0 1886.9 L 3453.0 1882.1 L 3481.4 1871.9 L 3512.0 1851.9 L 3553.6 1809.5 L 3613.0 1761.3 L 3698.2 1685.5 L 3732.0 1663.9 L 3813.8 1622.7 L 3875.5 1579.3 L 3899.5 1557.1 L 3949.7 1501.3 L 3970.3 1486.0 L 4023.3 1454.4 L 4049.7 1432.6 L 4066.1 1413.0 L 4102.5 1358.8 L 4138.3 1325.4 L 4180.7 1294.8 L 4226.3 1267.2 L 4270.5 1246.6 L 4302.9 1236.8"/>
+    </g>
+  </svg>
+
+  <div class="topFade"></div>
+  <div class="botFade"></div>
+  <div class="vig"></div>
+
+  <div class="head" id="head">
+    <div class="kick">地图上的为什么 · 第 1 集</div>
+    <h1>黄河<br>一条河的旅行</h1>
+    <div class="sub">从巴颜喀拉山出发，一路向东<br>5464 公里，最后流进渤海</div>
+  </div>
+
+  <div class="pins" id="pins"></div>
+  <div class="yellmark" id="yellmark">⚠️ 水在这里<br>变黄啦！</div>
+
+  <div class="cap" id="cap"><b></b><span></span></div>
+
+  <div class="end" id="end">
+    <div class="q">它出发时是清的，<br>为什么到海里的时候变黄了？<br><em>说给爷爷听。</em></div>
+    <div class="prov">流经 9 省区：青海·四川·甘肃·宁夏·内蒙古·陕西·山西·河南·山东</div>
+    <div class="hint">👆 点一点沿岸的地名，看看黄河经过谁的家乡</div>
+    <div class="tag">地图上的为什么 · 第 1 集</div>
+  </div>
+
+  <div class="hud">
+    <div class="bar"><i id="barfill"></i></div>
+    <button class="btn" id="music">♪ 点我听音乐</button>
+    <button class="btn" id="replay">重播</button>
+  </div>
+
+  <div class="foot">
+    河流走向为简化示意绘制（非真实影像）<br>本片为自然地理示意，不作国界与行政区划依据
+  </div>
+</div>
+
+<script>
+const W = 4551, H = 2533;
+const PTS = [[114.2, 1842.3], [173.0, 1864.1], [315.7, 1899.7], [378.1, 1923.1], [529.3, 2000.3], [548.5, 2015.5], [602.5, 2073.7], [656.1, 2109.7], [706.6, 2132.0], [796.6, 2157.4], [827.4, 2163.4], [849.2, 2164.4], [931.6, 2151.2], [1038.6, 2142.4], [1094.4, 2127.8], [1152.5, 2101.3], [1160.7, 2095.3], [1168.1, 2085.1], [1176.3, 2055.1], [1178.7, 2012.7], [1170.9, 1979.9], [1150.5, 1943.9], [1118.2, 1906.5], [1080.8, 1875.5], [1013.4, 1828.9], [993.0, 1807.3], [985.8, 1787.7], [986.6, 1765.9], [994.0, 1742.9], [1012.2, 1712.5], [1035.6, 1683.3], [1060.2, 1660.1], [1080.8, 1649.5], [1096.8, 1646.5], [1144.5, 1650.7], [1216.9, 1673.7], [1262.9, 1681.7], [1320.9, 1683.3], [1370.3, 1674.9], [1449.9, 1645.7], [1515.5, 1628.3], [1537.3, 1619.9], [1563.3, 1603.5], [1642.0, 1540.7], [1661.6, 1518.3], [1764.0, 1367.0], [1781.2, 1345.6], [1808.6, 1323.0], [1866.6, 1290.2], [1889.0, 1268.6], [1936.2, 1193.2], [1992.8, 1093.0], [2040.0, 992.0], [2052.9, 952.8], [2055.5, 921.0], [2050.9, 832.3], [2051.7, 766.3], [2061.3, 723.5], [2077.9, 690.5], [2136.3, 606.3], [2162.3, 579.3], [2196.1, 560.9], [2256.9, 546.9], [2303.7, 543.7], [2334.3, 546.5], [2358.7, 553.5], [2416.3, 578.7], [2463.1, 591.3], [2509.4, 597.7], [2613.8, 604.7], [2673.0, 615.5], [2712.0, 630.3], [2791.4, 668.3], [2807.2, 682.9], [2821.0, 711.1], [2839.6, 838.3], [2840.0, 877.0], [2823.6, 944.4], [2814.8, 1009.2], [2807.2, 1041.0], [2789.6, 1081.4], [2757.8, 1133.8], [2748.8, 1157.4], [2746.4, 1191.2], [2757.6, 1259.6], [2757.6, 1312.4], [2751.6, 1344.8], [2725.6, 1418.4], [2718.8, 1450.8], [2718.2, 1474.8], [2725.2, 1552.1], [2721.4, 1685.1], [2725.2, 1764.3], [2720.0, 1795.5], [2699.8, 1870.3], [2695.6, 1903.7], [2696.6, 1919.1], [2701.0, 1932.3], [2709.2, 1942.5], [2721.0, 1949.1], [2743.6, 1952.3], [2769.0, 1948.9], [2887.8, 1916.3], [2940.2, 1906.3], [3061.7, 1901.5], [3142.1, 1906.9], [3175.3, 1906.3], [3253.5, 1897.3], [3424.0, 1886.9], [3453.0, 1882.1], [3481.4, 1871.9], [3512.0, 1851.9], [3553.6, 1809.5], [3613.0, 1761.3], [3698.2, 1685.5], [3732.0, 1663.9], [3813.8, 1622.7], [3875.5, 1579.3], [3899.5, 1557.1], [3949.7, 1501.3], [3970.3, 1486.0], [4023.3, 1454.4], [4049.7, 1432.6], [4066.1, 1413.0], [4102.5, 1358.8], [4138.3, 1325.4], [4180.7, 1294.8], [4226.3, 1267.2], [4270.5, 1246.6], [4302.9, 1236.8]];
+const ST = [{"name": "约古宗列", "note": "黄河源头，巴颜喀拉山的水是清的", "x": 114.2, "y": 1842.3, "p": 0.0, "major": true}, {"name": "两湖", "note": "先住进扎陵湖、鄂陵湖", "x": 378.1, "y": 1923.1, "p": 0.0381, "major": false}, {"name": "玛多", "note": "海拔四千多米", "x": 529.3, "y": 2000.3, "p": 0.0615, "major": false}, {"name": "贵德", "note": "天下黄河贵德清", "x": 1080.8, "y": 1649.5, "p": 0.2352, "major": false}, {"name": "刘家峡", "note": "大水库在这里发电", "x": 1370.3, "y": 1674.9, "p": 0.2759, "major": false}, {"name": "兰州", "note": "唯一穿城的省会，水还是清的", "x": 1515.5, "y": 1628.3, "p": 0.2969, "major": true}, {"name": "中卫", "note": "沙坡头，沙漠就在河边", "x": 1781.2, "y": 1345.6, "p": 0.3514, "major": true}, {"name": "银川", "note": "塞上江南，沙漠边的大绿洲", "x": 1992.8, "y": 1093.0, "p": 0.3978, "major": true}, {"name": "乌海", "note": "沙漠与黄河握手", "x": 2050.9, "y": 832.3, "p": 0.4355, "major": false}, {"name": "临河", "note": "河套平原，塞外粮仓", "x": 2162.3, "y": 579.3, "p": 0.4751, "major": false}, {"name": "包头", "note": "草原钢城，蒙古语是'有鹿的地方'", "x": 2613.8, "y": 604.7, "p": 0.5394, "major": true}, {"name": "托克托", "note": "注意看！水在这里变黄啦", "x": 2807.2, "y": 682.9, "p": 0.5685, "major": true}, {"name": "老牛湾", "note": "长城在这里遇见黄河", "x": 2839.6, "y": 838.3, "p": 0.5906, "major": true}, {"name": "壶口瀑布", "note": "千里黄河一壶收，最壮观的地方", "x": 2721.4, "y": 1685.1, "p": 0.7107, "major": true}, {"name": "风陵渡·潼关", "note": "三省交界，黄河在这里掉头向东", "x": 2709.2, "y": 1942.5, "p": 0.7472, "major": true}, {"name": "三门峡", "note": "三门峡水电站，大坝在这里拦河发电", "x": 2887.8, "y": 1916.3, "p": 0.7727, "major": true}, {"name": "小浪底", "note": "每年放水冲沙，人造小洪峰", "x": 3061.7, "y": 1901.5, "p": 0.7968, "major": false}, {"name": "郑州", "note": "出了山，走进华北平原", "x": 3253.5, "y": 1897.3, "p": 0.8234, "major": true}, {"name": "开封", "note": "地上悬河！河底比城里高十米", "x": 3424.0, "y": 1886.9, "p": 0.8469, "major": true}, {"name": "济南", "note": "从泉城旁边流过", "x": 3949.7, "y": 1501.3, "p": 0.938, "major": false}, {"name": "东营", "note": "入海！每年造出一块新土地", "x": 4270.5, "y": 1246.6, "p": 0.9953, "major": true}];
+const SPLIT = {"x": 2807.2, "y": 682.9, "p": 0.5685};
+const yell = document.getElementById('yellmark');
+
+const svg = document.getElementById('map');
+const stage = document.getElementById('stage');
+const pinBox = document.getElementById('pins');
+const cap = document.getElementById('cap');
+const head = document.getElementById('head');
+const endBox = document.getElementById('end');
+const barfill = document.getElementById('barfill');
+
+let SW = 0, SH = 0;
+function fitStage() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let h = Math.min(vh, vw * 16 / 9);
+  let w = h * 9 / 16;
+  if (w > vw) { w = vw; h = w * 16 / 9; }
+  SW = Math.round(w); SH = Math.round(h);
+  stage.style.width = SW + 'px';
+  stage.style.height = SH + 'px';
+  stage.style.setProperty('--u', (SW / 100).toFixed(3) + 'px');
+  placePins();
+}
+
+const CUM = [0];
+for (let i = 1; i < PTS.length; i++)
+  CUM.push(CUM[i - 1] + Math.hypot(PTS[i][0] - PTS[i - 1][0], PTS[i][1] - PTS[i - 1][1]));
+const TOTAL = CUM[CUM.length - 1];
+
+function pointAt(p) {
+  const s = Math.max(0, Math.min(1, p)) * TOTAL;
+  let lo = 0, hi = CUM.length - 1;
+  while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (CUM[mid] <= s) lo = mid; else hi = mid; }
+  const seg = CUM[hi] - CUM[lo] || 1;
+  const k = (s - CUM[lo]) / seg;
+  return [PTS[lo][0] + (PTS[hi][0] - PTS[lo][0]) * k,
+          PTS[lo][1] + (PTS[hi][1] - PTS[lo][1]) * k];
+}
+
+const PIN_W = [];
+ST.forEach((s, i) => {
+  const el = document.createElement('div');
+  el.className = 'pin' + (i % 2 ? ' rev' : '');
+  el.innerHTML = '<i></i><b>' + s.name + '</b>';
+  pinBox.appendChild(el);
+  PIN_W.push(el);
+});
+
+const segs = [
+  {core: document.querySelector('.core.clear'), halo: document.querySelector('.halo.clear')},
+  {core: document.querySelector('.core.muddy'), halo: document.querySelector('.halo.muddy')}
+];
+segs.forEach(s => { s.len = s.core.getTotalLength(); });
+const LEN_TOTAL = segs[0].len + segs[1].len;
+
+function drawLine(p) {
+  const cut = p * LEN_TOTAL;
+  let acc = 0;
+  segs.forEach(s => {
+    const v = Math.max(0, Math.min(s.len, cut - acc));
+    acc += s.len;
+    s.core.style.strokeDasharray = v + ' ' + (s.len + 20);
+    s.halo.style.strokeDasharray = v + ' ' + (s.len + 20);
+  });
+}
+
+let vb = {x: 0, y: 0, w: 900, h: 1600};
+function setVB(cx, cy, hgt) {
+  const w = hgt * 9 / 16;
+  let x = cx - w / 2;
+  let y = cy - hgt * 0.54;
+  x = Math.max(0, Math.min(W - w, x));
+  y = Math.max(0, Math.min(H - hgt, y));
+  svg.setAttribute('viewBox', x.toFixed(1) + ' ' + y.toFixed(1) + ' ' + w.toFixed(1) + ' ' + hgt.toFixed(1));
+  vb = {x, y, w, h: hgt};
+}
+
+function placePins() {
+  const U = SW / 100, FS = 2.75 * U;
+  ST.forEach((s, i) => {
+    const sx = (s.x - vb.x) / vb.w * SW;
+    const sy = (s.y - vb.y) / vb.h * SH;
+    let nameW = 0;
+    for (const ch of s.name) nameW += FS * (ch.charCodeAt(0) > 127 ? 1 : 0.55);
+    const pw = (2.6 + 1.6) * U + nameW + 4 * U, ph = 5.3 * U;
+    const out = sx - pw / 2 < 4 || sx + pw / 2 > SW - 4 || sy - ph / 2 < 4 || sy + ph / 2 > SH - 4;
+    PIN_W[i].style.display = out ? 'none' : 'flex';
+    PIN_W[i].style.left = sx.toFixed(1) + 'px';
+    PIN_W[i].style.top = sy.toFixed(1) + 'px';
+  });
+  const yx = (SPLIT.x - vb.x) / vb.w * SW;
+  const yy = (SPLIT.y - vb.y) / vb.h * SH;
+  const yOut = yx < 4 || yx > SW - 4 || yy < 4 || yy > SH - 4;
+  yell.style.display = yOut ? 'none' : 'block';
+  const yw = yell.offsetWidth || 200, yh = yell.offsetHeight || 76;
+  let mx = yx - 26, toRight = false;
+  if (mx - yw < 6) { mx = yx + 26; toRight = true; }
+  if (mx + yw > SW - 6) mx = SW - 6 - yw;
+  const my = Math.max(yh / 2 + 6, Math.min(SH - yh / 2 - 6, yy));
+  yell.classList.toggle('r', toRight);
+  yell.style.left = mx.toFixed(1) + 'px';
+  yell.style.top = my.toFixed(1) + 'px';
+}
+
+  PIN_W.forEach((el, i) => el.addEventListener('click', () => showCap(i)));
+
+/* ---------- 儿童背景音乐：八音盒风格，网页内实时合成，无外部音频文件 ---------- */
+const btnMusic = document.getElementById('music');
+let AC = null, musicOn = false, loopT = null;
+const NOTE = s => 523.25 * Math.pow(2, s / 12);
+const MEL = [0,4,7,9,7,4,2,0,  4,7,9,12,9,7,4,2,  7,9,12,9,7,4,2,0,  2,4,7,4,2,0,-3,-5];
+const BASS = [[0,-24],[8,-27],[16,-17],[24,-24]];
+function tone(f, at, dur, vol, type) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'sine'; o.frequency.value = f;
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(vol, at + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  o.connect(g).connect(AC.destination);
+  o.start(at); o.stop(at + dur + 0.05);
+  if (!type) {
+    const o2 = AC.createOscillator(), g2 = AC.createGain();
+    o2.type = 'sine'; o2.frequency.value = f * 2;
+    g2.gain.setValueAtTime(0, at);
+    g2.gain.linearRampToValueAtTime(vol * 0.22, at + 0.01);
+    g2.gain.exponentialRampToValueAtTime(0.0001, at + dur * 0.5);
+    o2.connect(g2).connect(AC.destination);
+    o2.start(at); o2.stop(at + dur * 0.5 + 0.05);
+  }
+}
+function musicLoop() {
+  if (!musicOn) return;
+  const t0 = AC.currentTime + 0.08, B = 60 / 96;
+  MEL.forEach((s, i) => { if (s != null) tone(NOTE(s), t0 + i * B, 1.3, 0.14); });
+  BASS.forEach(([b, s]) => tone(NOTE(s), t0 + b * B, 1.9, 0.09, 'triangle'));
+  loopT = setTimeout(musicLoop, MEL.length * B * 1000 - 60);
+}
+function startMusic() {
+  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  AC.resume().then(() => {
+    if (!musicOn) { musicOn = true; btnMusic.textContent = '🔊 音乐'; musicLoop(); }
+  }).catch(() => {});
+}
+function stopMusic() {
+  musicOn = false; clearTimeout(loopT);
+  if (AC) AC.suspend();
+  btnMusic.textContent = '♪ 点我听音乐';
+}
+btnMusic.onclick = () => musicOn ? stopMusic() : startMusic();
+
+const DUR = 20000, HOLD = 2000;
+let accum = 0, prev = 0, pausedUntil = 0, lastCap = -1, raf = 0;
+
+function sm(a, b, t) {
+  const x = Math.max(0, Math.min(1, (t - a) / (b - a)));
+  return x * x * (3 - 2 * x);
+}
+function hgtAt(t) {
+  const dip = sm(0.42, 0.55, t) * (1 - sm(0.78, 0.90, t));
+  return 1680 - 340 * dip + (t > 0.90 ? (t - 0.90) / 0.10 * 700 : 0);
+}
+
+function showCap(i, holdMs) {
+  cap.querySelector('b').textContent = ST[i].name;
+  cap.querySelector('span').textContent = ST[i].note;
+  cap.classList.add('on');
+  PIN_W.forEach((el, j) => el.classList.toggle('hot', j === i));
+  clearTimeout(cap._t);
+  cap._t = setTimeout(() => { cap.classList.remove('on'); PIN_W.forEach(el => el.classList.remove('hot')); }, holdMs || 2200);
+}
+
+function frame(now) {
+  if (!prev) prev = now;
+  const dt = Math.min(50, now - prev);
+  prev = now;
+  if (now >= pausedUntil) accum += dt;
+  const t = Math.min(1, accum / DUR);
+
+  const cam = Math.min(1, Math.max(0, (t - 0.015) / 0.915));
+  const hgt = hgtAt(t);
+  const cp = pointAt(cam);
+  setVB(cp[0], cp[1], hgt);
+  placePins();
+
+  drawLine(Math.min(1, t / 0.945));
+  barfill.style.width = (t * 100).toFixed(1) + '%';
+
+  head.classList.toggle('on', t < 0.28);
+  endBox.classList.toggle('on', t > 0.96);
+  stage.classList.toggle('done', t > 0.96);
+
+  let active = -1;
+  ST.forEach((s, i) => {
+    if (cam >= s.p - 0.004) { PIN_W[i].classList.add('on'); active = i; }
+  });
+  yell.classList.toggle('on', cam >= SPLIT.p - 0.004);
+  if (active >= 0 && ST[active].major && active !== lastCap) {
+    lastCap = active;
+    showCap(active, HOLD);
+    pausedUntil = now + HOLD * 0.88;
+  }
+
+  if (t < 1) raf = requestAnimationFrame(frame);
+  else cap.classList.remove('on');
+  if (t > 0.955) cap.classList.remove('on');
+}
+
+function play() {
+  cancelAnimationFrame(raf);
+  accum = 0; prev = 0; pausedUntil = 0; lastCap = -1;
+  ST.forEach((s, i) => PIN_W[i].classList.remove('on'));
+  endBox.classList.remove('on');
+  stage.classList.remove('done');
+  startMusic();
+  raf = requestAnimationFrame(frame);
+}
+
+document.getElementById('replay').onclick = play;
+btnMusic.onclick = () => musicOn ? stopMusic() : startMusic();
+document.addEventListener('pointerdown', function once() {
+  if (!musicOn) startMusic();
+  document.removeEventListener('pointerdown', once);
+});
+window.addEventListener('resize', () => { fitStage(); });
+
+fitStage();
+
+const qs = new URLSearchParams(location.search);
+if (qs.has('t')) {
+  const tt = Math.max(0, Math.min(1, parseFloat(qs.get('t')) || 0));
+  (function freeze() {
+    const t = tt;
+    const cam = Math.min(1, Math.max(0, (t - 0.015) / 0.915));
+    const hgt = hgtAt(t);
+    const cp = pointAt(cam);
+    setVB(cp[0], cp[1], hgt);
+    placePins();
+    drawLine(Math.min(1, t / 0.945));
+    barfill.style.width = (t * 100).toFixed(1) + '%';
+    head.classList.toggle('on', t < 0.28);
+    endBox.classList.toggle('on', t > 0.96);
+    stage.classList.toggle('done', t > 0.96);
+    let act = -1;
+    ST.forEach((s, i) => { if (cam >= s.p - 0.004) { PIN_W[i].classList.add('on'); act = i; } });
+    yell.classList.toggle('on', cam >= SPLIT.p - 0.004);
+    if (act >= 0 && t < 0.955) showCap(act);
+  })();
+} else {
+  play();
+}
+</script>
+</body>
+</html>
